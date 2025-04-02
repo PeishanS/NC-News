@@ -217,7 +217,24 @@ describe('seed', () => {
           expect(column.data_type).toBe('character varying');
         });
     });
-    test.todo("check that topic references a slug from the topics table")
+    test("topic column references a slug from the topics table", () => {
+      return db.query(`
+        SELECT *
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+          AND tc.table_name = 'articles'
+          AND kcu.column_name = 'topic'
+          AND ccu.table_name = 'topics'
+          AND ccu.column_name = 'slug';
+        `)
+        .then(({ rows }) => {
+          expect(rows).toHaveLength(1); 
+        });
+    });
     test('articles table has author column as varying character', () => {
       return db
         .query(
@@ -231,7 +248,18 @@ describe('seed', () => {
           expect(column.data_type).toBe('character varying');
         });
     });
-    test.todo("check that author references a primary key from the users table")
+    test("author column references a username from the users table", () => { //NEW
+      return db
+        .query(
+          `SELECT DISTINCT author 
+          FROM articles 
+          WHERE author IS NOT NULL 
+          AND author NOT IN (SELECT username FROM users);`
+        )
+        .then(({ rows }) => {
+          expect(rows).toHaveLength(0); // No articles should have a topic not found in topics
+        });
+    });
     test('articles table has body column as text', () => {
       return db
         .query(
@@ -258,7 +286,16 @@ describe('seed', () => {
           expect(column.data_type).toBe('timestamp without time zone');
         });
     });
-    test.todo("created_at has a default value of the current timestamp")
+    test('created_at column has default value of the current timestamp', () => {  //NEW
+      return db.query(
+        `SELECT column_default
+        FROM information_schema.columns
+        WHERE table_name = 'articles'
+        AND column_name = 'created_at';`
+      ).then(({ rows: [{ column_default}]}) => { 
+        expect(column_default).toBe("CURRENT_TIMESTAMP")
+      })
+    })
     test('articles table has votes column as integer', () => {
       return db
         .query(
@@ -356,8 +393,17 @@ describe('seed', () => {
           expect(column.data_type).toBe('integer');
         });
     });
-
-    test.todo("article_id is foreign key referencing an article from the articles table")
+    test("article_id is foreign key referencing an article from the articles table", () => { // NEW
+      return db.query(
+          `SELECT DISTINCT article_id 
+            FROM comments 
+            WHERE article_id IS NOT NULL  
+            AND article_id NOT IN (SELECT article_id FROM articles);`
+        )
+        .then(({ rows }) => {
+          expect(rows).toHaveLength(0); // No articles should have a topic not found in topics
+        });
+    });
     
     test('comments table has body column as text', () => {
       return db
@@ -376,44 +422,74 @@ describe('seed', () => {
       return db
         .query(
           `SELECT column_name, data_type
-                          FROM information_schema.columns
-                          WHERE table_name = 'comments'
-                          AND column_name = 'votes';`
+              FROM information_schema.columns
+              WHERE table_name = 'comments'
+              AND column_name = 'votes';`
         )
         .then(({ rows: [column] }) => {
           expect(column.column_name).toBe('votes');
           expect(column.data_type).toBe('integer');
         });
     });
-    test.todo("votes default to 0")
+    test('votes column has default value of 0', () => { 
+      return db.query(
+        `SELECT column_default
+          FROM information_schema.columns
+          WHERE table_name = 'comments'
+          AND column_name = 'votes'`
+        ).then(({ rows: [{ column_default}]}) => { 
+        expect(column_default).toBe("0")
+      })
+    })
+
     test('comments table has author column as varying character', () => {
       return db
         .query(
           `SELECT column_name, data_type
-                          FROM information_schema.columns
-                          WHERE table_name = 'comments'
-                          AND column_name = 'author';`
+            FROM information_schema.columns
+            WHERE table_name = 'comments'
+            AND column_name = 'author';`
         )
         .then(({ rows: [column] }) => {
           expect(column.column_name).toBe('author');
           expect(column.data_type).toBe('character varying');
       });
     });
-    test.todo("author references a user from users table")
+    test("author column references a username from the users table", () => { //NEW 
+      return db
+        .query(
+          `SELECT DISTINCT author 
+          FROM comments
+          WHERE author IS NOT NULL 
+          AND author NOT IN (SELECT username FROM users);`
+        )
+        .then(({ rows }) => {
+          expect(rows).toHaveLength(0); // No articles should have a topic not found in topics
+        });
+    });
     test('comments table has created_at column as timestamp', () => {
       return db
         .query(
           `SELECT column_name, data_type
-                          FROM information_schema.columns
-                          WHERE table_name = 'comments'
-                          AND column_name = 'created_at';`
+            FROM information_schema.columns
+            WHERE table_name = 'comments'
+            AND column_name = 'created_at';`
         )
         .then(({ rows: [column] }) => {
           expect(column.column_name).toBe('created_at');
           expect(column.data_type).toBe('timestamp without time zone');
         });
     });
-    test.todo("created_at defaults to current timestamp")
+     test('created_at column has default value of the current timestamp', () => {  //NEW
+      return db.query(
+        `SELECT column_default
+        FROM information_schema.columns
+        WHERE table_name = 'comments'
+        AND column_name = 'created_at';`
+      ).then(({ rows: [{ column_default}]}) => { 
+        expect(column_default).toBe("CURRENT_TIMESTAMP")
+      })
+    })
   });
 
   describe('data insertion', () => {
