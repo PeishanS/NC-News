@@ -248,17 +248,23 @@ describe('seed', () => {
           expect(column.data_type).toBe('character varying');
         });
     });
-    test("author column references a username from the users table", () => { //NEW
-      return db
-        .query(
-          `SELECT DISTINCT author 
-          FROM articles 
-          WHERE author IS NOT NULL 
-          AND author NOT IN (SELECT username FROM users);`
-        )
+    test("author column references a username from the users table", () => {
+      return db.query(`
+        SELECT *
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+          AND tc.table_name = 'articles'
+          AND kcu.column_name = 'author'
+          AND ccu.table_name = 'users'
+          AND ccu.column_name = 'username';
+        `)
         .then(({ rows }) => {
-          expect(rows).toHaveLength(0); // No articles should have a topic not found in topics
-        });
+          expect(rows).toHaveLength(1); 
+      });
     });
     test('articles table has body column as text', () => {
       return db
@@ -401,7 +407,7 @@ describe('seed', () => {
             AND article_id NOT IN (SELECT article_id FROM articles);`
         )
         .then(({ rows }) => {
-          expect(rows).toHaveLength(0); // No articles should have a topic not found in topics
+          expect(rows).toHaveLength(0); 
         });
     });
     
