@@ -457,6 +457,64 @@ describe('seed', () => {
         });
     });
 
+    test('comments table has votes column as integer', () => {
+      return db
+        .query(
+          `SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name = 'comments'
+            AND column_name = 'votes';`
+        )
+        .then(({ rows: [column] }) => {
+          expect(column.column_name).toBe('votes');
+          expect(column.data_type).toBe('integer');
+        });
+    });
+
+    test('votes column has default value of 0', () => { 
+      return db.query(
+        `SELECT column_default
+          FROM information_schema.columns
+          WHERE table_name = 'comments'
+          AND column_name = 'votes'`
+      ).then(({ rows: [{ column_default }] }) => { 
+        expect(column_default).toBe('0');
+      });
+    });
+
+    test("comments table has an author column as varying character", () => { 
+      return db
+        .query(
+          `SELECT *
+            FROM information_schema.columns
+            WHERE table_name = 'comments'
+            AND column_name = 'author';`
+        )
+        .then(({ rows: [column] }) => {
+          expect(column.column_name).toBe('author');
+          expect(column.data_type).toBe('character varying');
+        });
+    })
+
+    test("author column references a username from the users table", () => { 
+      return db.query(`
+        SELECT *
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+          AND tc.table_name = 'comments'
+          AND kcu.column_name = 'author'
+          AND ccu.table_name = 'users'
+          AND ccu.column_name = 'username';
+      `)
+        .then(({ rows }) => {
+          expect(rows).toHaveLength(1); 
+        });
+    })
+
     test('comments table has created_at column as timestamp', () => {
       return db
         .query(
@@ -482,30 +540,6 @@ describe('seed', () => {
       });
     });
 
-    test('comments table has votes column as integer', () => {
-      return db
-        .query(
-          `SELECT column_name, data_type
-            FROM information_schema.columns
-            WHERE table_name = 'comments'
-            AND column_name = 'votes';`
-        )
-        .then(({ rows: [column] }) => {
-          expect(column.column_name).toBe('votes');
-          expect(column.data_type).toBe('integer');
-        });
-    });
-
-    test('votes column has default value of 0', () => { 
-      return db.query(
-        `SELECT column_default
-          FROM information_schema.columns
-          WHERE table_name = 'comments'
-          AND column_name = 'votes'`
-      ).then(({ rows: [{ column_default }] }) => { 
-        expect(column_default).toBe('0');
-      });
-    });
   });
 });
   describe('data insertion', () => {
@@ -558,3 +592,5 @@ describe('seed', () => {
       });
     });
   });
+
+
