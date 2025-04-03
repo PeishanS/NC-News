@@ -508,3 +508,53 @@ describe('seed', () => {
     });
   });
 });
+  describe('data insertion', () => {
+    test('topics data has been inserted correctly', () => {
+      return db.query(`SELECT * FROM topics;`).then(({ rows: topics }) => {
+        expect(topics).toHaveLength(3);
+        topics.forEach((topic) => {
+          expect(topic).toHaveProperty('slug');
+          expect(topic).toHaveProperty('description');
+          expect(topic).toHaveProperty('img_url');
+        });
+      });
+    });
+    test('users data has been inserted correctly', () => {
+      return db.query(`SELECT * FROM users;`).then(({ rows: users }) => {
+        expect(users).toHaveLength(4);
+        users.forEach((user) => {
+          expect(user).toHaveProperty('username');
+          expect(user).toHaveProperty('name');
+          expect(user).toHaveProperty('avatar_url');
+        });
+      });
+    });
+    test('articles data has been inserted correctly', () => {
+      return db.query(`SELECT * FROM articles;`).then(({ rows: articles }) => {
+        expect(articles).toHaveLength(13);
+        articles.forEach((article) => {
+          expect(article).toHaveProperty('article_id');
+          expect(article).toHaveProperty('title');
+          expect(article).toHaveProperty('topic');
+          expect(article).toHaveProperty('author');
+          expect(article).toHaveProperty('body');
+          expect(article).toHaveProperty('created_at');
+          expect(article).toHaveProperty('votes');
+          expect(article).toHaveProperty('article_img_url');
+        });
+      });
+    });
+    test('comments data has been inserted correctly', () => {
+      return db.query(`SELECT * FROM comments;`).then(({ rows: comments }) => {
+        expect(comments).toHaveLength(18);
+        comments.forEach((comment) => {
+          expect(comment).toHaveProperty('comment_id');
+          expect(comment).toHaveProperty('body');
+          expect(comment).toHaveProperty('article_id');
+          expect(comment).toHaveProperty('author');
+          expect(comment).toHaveProperty('votes');
+          expect(comment).toHaveProperty('created_at');
+        });
+      });
+    });
+  });
