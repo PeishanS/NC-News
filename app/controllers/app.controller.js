@@ -1,5 +1,5 @@
 const endpointsJson = require("../../endpoints.json")
-const { selectTopics, selectArticleById } = require("../models/app.model")
+const { selectTopics, selectArticleById, selectArticles} = require("../models/app.model")
 
 exports.getApi = (req, res) => {
     res.status(200).json({endpoints: endpointsJson})
@@ -20,5 +20,12 @@ exports.getArticleById = (req, res, next) => {
     })
     .catch((err) => {
         next(err)
+    })
+}
+
+exports.getArticles = (req, res) => {
+    return selectArticles()
+    .then((articles) => {
+        res.status(200).send({articles})
     })
 }
