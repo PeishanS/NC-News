@@ -5,5 +5,15 @@ exports.convertTimestampToDate = ({ created_at, ...otherProperties }) => {
   return { created_at: new Date(created_at), ...otherProperties };
 };
 
+// create an Article Look Up Object
+exports.createRef = (articleData) => {
+  const result = {};
+  articleData.forEach((article) => {
+    result[article.title] = article.article_id;
+  });
+  return result;
+};
+
+
 
 
