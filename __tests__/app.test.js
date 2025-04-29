@@ -80,6 +80,7 @@ describe("GET /api/articles", () => {
     .get("/api/articles")
     .then(({body}) => {
       expect(body.articles).toHaveLength(13);
+      expect(body.articles).toBeSorted("created_at");
       body.articles.forEach((article) => {
         expect(typeof article.author).toBe("string");
         expect(typeof article.title).toBe("string");
@@ -91,9 +92,50 @@ describe("GET /api/articles", () => {
         expect(typeof article.comment_count).toBe("number");
         expect(article).not.toHaveProperty("body")
       })
-      const dates = body.articles.map((article) => new Date(article.created_at));
-      const formattedDates = [...dates].sort((a, b) => b -a);
-      expect(dates).toEqual(formattedDates);
+      // below can be replaced by Jest Sort
+      // const dates = body.articles.map((article) => new Date(article.created_at));
+      // const formattedDates = [...dates].sort((a, b) => b -a);
+      // expect(dates).toEqual(formattedDates);
     })
   })
-})
+});
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("status: 200 - responds with all the comments for an requested article", () => {
+    return request(app)
+    .get("/api/articles/1/comments")
+    .expect(200)
+    .then(({body}) => {
+      expect(body.comments).toHaveLength(11);
+      expect(body.comments).toBeSorted("created_at");
+      body.comments.forEach((comment) => {
+        expect(typeof comment.comment_id).toBe("number");
+        expect(typeof comment.votes).toBe("number");
+        expect(typeof comment.created_at).toBe("string");
+        expect(typeof comment.author).toBe("string");
+        expect(typeof comment.body).toBe("string");
+        expect(typeof comment.article_id).toBe("number");
+      });
+      // below can be replaced by Jest Sort.
+      // const dates = body.comments.map((comment) => new Date(comment.created_at));
+      // const formattedDates = [...dates].sort((a, b) => b - a);
+      // expect(dates).toEqual(formattedDates);
+    })
+  });
+  test("status: 404 - when passed a valid id but doesn't exist", () => {
+    return request(app)
+    .get("/api/articles/9999/comments")
+    .expect(404)
+    .then(({body}) => {
+     expect(body.msg).toBe("No article found under article_id 9999.")
+    })
+  });
+  test("status 400 - when passed an invalid id", () => {
+    return request(app)
+    .get("/api/articles/apple/comments")
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("Bad request.")
+    })
+  })
+});
