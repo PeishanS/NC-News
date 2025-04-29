@@ -139,3 +139,56 @@ describe("GET /api/articles/:article_id/comments", () => {
     })
   })
 });
+
+describe.only("POST /api/articles/:article_id/comments", () => {
+  test("status: 201 - responds with the newly added comment", () => {
+    return request(app)
+    .post("/api/articles/1/comments")
+    .send({username: "butter_bridge", body: "testbody1"})
+    .expect(201)
+    .then(({body}) => {
+      expect(typeof body.comment.comment_id).toBe("number");
+      expect(typeof body.comment.article_id).toBe("number");
+      expect(typeof body.comment.author).toBe("string");
+      expect(typeof body.comment.body).toBe("string");
+      expect(typeof body.comment.created_at).toBe("string");
+      expect(typeof body.comment.votes).toBe("number")
+    })
+  })
+  test("status: 404 - when missing information of body", ()=> {
+    return request(app)
+    .post("/api/articles/1/comments")
+    .send({username: "butter_bridge"})
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe(`Missing required information.`)
+    })
+  })
+  test("status: 404 - when missing information of username", ()=> {
+    return request(app)
+    .post("/api/articles/1/comments")
+    .send({body: "testingbody3"})
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe(`Missing required information.`)
+    })
+  })
+  test("status: 404 - when pass valid article_id but doesn't exist", ()=> {
+    return request(app)
+    .post("/api/articles/999/comments")
+    .send({username: "butter_bridge", body: "testbody4"})
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toBe(`No article found under article_id 999.`)
+    })
+  })
+  test("status: 404 - when pass invalid article_id", ()=> {
+    return request(app)
+    .post("/api/articles/apple/comments")
+    .send({username: "butter_bridge", body: "testbody5"})
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe(`Bad request.`)
+    })
+  })
+})

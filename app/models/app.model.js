@@ -74,3 +74,33 @@ exports.selectCommentsByArticleId = (article_id) => {
         }
     })
 }
+
+exports.insertCommentByArticleId = (article_id, username, body) => {
+    // username or body may be missing
+    if(!username || !body){
+        return Promise.reject({
+            status: 400,
+            msg:`Missing required information.`
+        })
+    };
+
+    //check if the article_id exists
+    return db.query(`SELECT * FROM articles WHERE article_id = $1`, [article_id])
+    .then(({rows}) => {
+        if(rows.length === 0){
+            throw{
+                status: 404,
+                msg:`No article found under article_id ${article_id}.`
+            }
+        } else {
+            return db.query(`
+                INSERT INTO comments (article_id, author, body)
+                VALUES ($1, $2, $3)
+                RETURNING *;`, 
+                [article_id, username, body])
+            .then(({rows}) => {
+                return rows[0]
+            })
+        }
+    })
+}
