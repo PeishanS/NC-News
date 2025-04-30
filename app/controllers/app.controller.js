@@ -1,5 +1,5 @@
 const endpointsJson = require("../../endpoints.json")
-const { selectTopics, selectArticleById, selectArticles, selectCommentsByArticleId, insertCommentByArticleId, updateArticleById, removeCommentById } = require("../models/app.model")
+const { selectTopics, selectArticleById, selectArticles, selectCommentsByArticleId, insertCommentByArticleId, updateArticleById, removeCommentById, selectUsers } = require("../models/app.model")
 
 exports.getApi = (req, res) => {
     res.status(200).json({endpoints: endpointsJson})
@@ -74,4 +74,14 @@ exports.deleteCommentById = (req, res, next) => {
     .catch((err) => {
         next(err)
     })
+}
+
+exports.getUsers = (req, res, next) => {
+    return selectUsers()
+    .then((users) => {
+        res.status(200).send({users})
+    })
+    .catch((err) => {
+        next(err)
+    }) 
 }
