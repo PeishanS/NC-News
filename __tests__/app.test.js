@@ -183,7 +183,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       expect(body.msg).toBe(`Bad request.`)
     })
   })
-})
+});
 
 describe("PATCH /api/articles/:article_id", () => {
   test("status:200 - increments the current article's vote property by given positive newVote", () => {
@@ -231,4 +231,36 @@ describe("PATCH /api/articles/:article_id", () => {
         expect(body.msg).toBe("Bad request.");
       });
   });
+});
+
+describe("DELETE /api/comments/:comment_id", () => {
+  test("status: 204 - deleter the comments with the passed commnet_id", () => {
+    return request(app)
+    .delete("/api/comments/1")
+    .expect(204)
+    .then(({body}) => {
+      expect(body).toEqual({})
+      return db.query(`SELECT * FROM comments WHERE comment_id = 1`)
+      .then(({rows}) => {
+        expect(rows.length).toBe(0)
+      })
+    })
+    
+  })
+  test("status: 404 - when passed a valid id but doesn't exit", () => {
+    return request(app)
+    .delete("/api/comments/9999")
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toBe("No comments found under comment_id 9999.")
+    })
+  })
+  test("status: 400 - when passed an invalid id", () => {
+    return request(app)
+    .delete("/api/comments/apple")
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("Bad request.")
+    })
+  })
 })
