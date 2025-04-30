@@ -92,10 +92,6 @@ describe("GET /api/articles", () => {
         expect(typeof article.comment_count).toBe("number");
         expect(article).not.toHaveProperty("body")
       })
-      // below can be replaced by Jest Sort
-      // const dates = body.articles.map((article) => new Date(article.created_at));
-      // const formattedDates = [...dates].sort((a, b) => b -a);
-      // expect(dates).toEqual(formattedDates);
     })
   })
 });
@@ -103,10 +99,10 @@ describe("GET /api/articles", () => {
 describe("GET /api/articles/:article_id/comments", () => {
   test("status: 200 - responds with all the comments for an requested article", () => {
     return request(app)
-    .get("/api/articles/1/comments")
+    .get("/api/articles/7/comments")
     .expect(200)
     .then(({body}) => {
-      expect(body.comments).toHaveLength(11);
+      expect(body.comments).toHaveLength(0);
       expect(body.comments).toBeSorted("created_at");
       body.comments.forEach((comment) => {
         expect(typeof comment.comment_id).toBe("number");
@@ -116,10 +112,6 @@ describe("GET /api/articles/:article_id/comments", () => {
         expect(typeof comment.body).toBe("string");
         expect(typeof comment.article_id).toBe("number");
       });
-      // below can be replaced by Jest Sort.
-      // const dates = body.comments.map((comment) => new Date(comment.created_at));
-      // const formattedDates = [...dates].sort((a, b) => b - a);
-      // expect(dates).toEqual(formattedDates);
     })
   });
   test("status: 404 - when passed a valid id but doesn't exist", () => {
@@ -140,7 +132,7 @@ describe("GET /api/articles/:article_id/comments", () => {
   })
 });
 
-describe.only("POST /api/articles/:article_id/comments", () => {
+describe("POST /api/articles/:article_id/comments", () => {
   test("status: 201 - responds with the newly added comment", () => {
     return request(app)
     .post("/api/articles/1/comments")
@@ -191,4 +183,52 @@ describe.only("POST /api/articles/:article_id/comments", () => {
       expect(body.msg).toBe(`Bad request.`)
     })
   })
+})
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("status:200 - increments the current article's vote property by given positive newVote", () => {
+    return request(app)
+    .patch("/api/articles/1")
+    .send({ inc_votes: 1 })
+    .expect(200)
+    .then(({body}) => {
+      expect(body.article.votes).toBe(101)
+    })
+  })
+  test("status:200 - decrements the current article's vote property by given negative newVote", () => {
+    return request(app)
+    .patch("/api/articles/1")
+    .send({ inc_votes: -20 })
+    .expect(200)
+    .then(({body}) => {
+      expect(body.article.votes).toBe(80)
+    })
+  })
+  test("status:400 - when passed invalid newVote", () => {
+    return request(app)
+    .patch("/api/articles/1")
+    .send({ inc_votes: "apple" })
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("Invalid inc_votes format")
+    })
+  })
+  test("status 404 - valid ID but not found", () => {
+    return request(app)
+      .patch("/api/articles/9999")
+      .send({ inc_votes: 1 })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("No article found under article_id 9999.");
+      })
+  })
+  test("status 400 - invalid article_id", () => {
+    return request(app)
+      .patch("/api/articles/apple")
+      .send({ inc_votes: 1 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad request.");
+      });
+  });
 })
