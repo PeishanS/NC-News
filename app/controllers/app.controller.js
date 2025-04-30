@@ -1,5 +1,5 @@
 const endpointsJson = require("../../endpoints.json")
-const { selectTopics, selectArticleById, selectArticles, selectCommentsByArticleId, insertCommentByArticleId } = require("../models/app.model")
+const { selectTopics, selectArticleById, selectArticles, selectCommentsByArticleId, insertCommentByArticleId, updateArticleById } = require("../models/app.model")
 
 exports.getApi = (req, res) => {
     res.status(200).json({endpoints: endpointsJson})
@@ -47,6 +47,18 @@ exports.postCommentByArticleId = (req, res, next) => {
     return insertCommentByArticleId(article_id, username, body)
     .then((insertComment) => {
         res.status(201).send({comment: insertComment})
+    })
+    .catch((err) => {
+        next(err)
+    })
+}
+
+exports.patchArticleById = (req, res, next) => {
+    const { article_id } = req.params;
+    const { inc_votes: votes } =  req.body;
+    return updateArticleById(article_id, { inc_votes: votes })
+    .then((updatedArticle) => {
+        res.status(200).send({article: updatedArticle})
     })
     .catch((err) => {
         next(err)

@@ -104,3 +104,29 @@ exports.insertCommentByArticleId = (article_id, username, body) => {
         }
     })
 }
+
+exports.updateArticleById = (article_id, {inc_votes: votes}) => {
+    if(typeof votes !== "number"){
+        return Promise.reject({
+            status:400,
+            msg:"Invalid inc_votes format"
+        })
+    }
+    return db.query(
+        `UPDATE articles
+        SET
+            votes = votes + $1
+        WHERE article_id = $2
+        RETURNING *;`,
+        [votes, article_id]
+    )
+    .then(({rows}) => {
+        if(rows.length === 0){
+            return Promise.reject({
+                status: 404,
+                msg:`No article found under article_id ${article_id}.`
+            })
+        }
+        return rows[0];
+    })
+}
