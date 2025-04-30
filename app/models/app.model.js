@@ -140,7 +140,6 @@ exports.removeCommentById = (comment_id) => {
         [comment_id]
     )
     .then(({rows}) => {
-        console.log(rows, "<<<<<<")
         if(rows.length === 0){
             return Promise.reject({
                 status: 404,
@@ -148,5 +147,15 @@ exports.removeCommentById = (comment_id) => {
             })
         }
         return rows[0];
+    })
+}
+
+exports.selectUsers = () => {
+    return db
+    .query(
+        `SELECT * FROM users`
+    )
+    .then(({rows}) => {
+        return rows;
     })
 }
