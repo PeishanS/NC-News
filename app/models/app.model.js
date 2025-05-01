@@ -22,10 +22,26 @@ exports.selectArticleById = (article_id) => {
     })
 }
 
-exports.selectArticles = () => {
-    return db
-    .query(
-        `SELECT
+exports.selectArticles = (sort_by = "created_at", order = "desc") => {
+    const allowedSortBys = ["article_id", "title","topic", "author", "created_at", "votes", "article_img_url","comment_count"];
+
+    const allowedOrders = ["asc", "desc"];
+
+    if(!allowedSortBys.includes(sort_by)){
+        return Promise.reject({
+            status: 400,
+            msg: `Invalid column query.`
+        })
+    };
+
+    if(!allowedOrders.includes(order)){
+        return Promise.reject({
+            status: 400,
+            msg: `Invalid order query.`
+        })
+    }
+
+    const queryStr = `SELECT
         articles.author,
         articles.title,
         articles.article_id,
@@ -37,8 +53,10 @@ exports.selectArticles = () => {
         FROM articles
         LEFT OUTER JOIN comments ON comments.article_id = articles.article_id
         GROUP BY articles.article_id
-        ORDER BY articles.created_at DESC;`
-    )
+        ORDER BY ${sort_by} ${order.toUpperCase()};`
+
+    return db
+    .query(queryStr)
     .then(({rows}) => {
         return rows;
     })
@@ -76,15 +94,6 @@ exports.selectCommentsByArticleId = (article_id) => {
 }
 
 exports.insertCommentByArticleId = (article_id, username, body) => {
-    // username or body may be missing
-    if(!username || !body){
-        return Promise.reject({
-            status: 400,
-            msg:`Missing required information.`
-        })
-    };
-
-    //check if the article_id exists
     return db.query(`SELECT * FROM articles WHERE article_id = $1`, [article_id])
     .then(({rows}) => {
         if(rows.length === 0){
@@ -106,12 +115,6 @@ exports.insertCommentByArticleId = (article_id, username, body) => {
 }
 
 exports.updateArticleById = (article_id, {inc_votes: votes}) => {
-    if(typeof votes !== "number"){
-        return Promise.reject({
-            status:400,
-            msg:"Invalid inc_votes format"
-        })
-    }
     return db.query(
         `UPDATE articles
         SET
