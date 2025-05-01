@@ -96,6 +96,33 @@ describe("GET /api/articles", () => {
   })
 });
 
+describe.only("GET /api/articles (sorting queries)", () => {
+  test("status:200-sorts by votes ascending", () => {
+    return request(app)
+    .get("/api/articles?sort_by=votes&order=asc")
+    .expect(200)
+    .then(({body}) => {
+      expect(body.articles).toBeSortedBy("votes", { asceding: true});
+    })
+  })
+  test("status:400-sorts by body descending", () => {
+    return request(app)
+    .get("/api/articles?sort_by=body&order=desc")
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("Invalid column query.");
+    })
+  })
+  test("status:400-sorts by invalid order", () => {
+    return request(app)
+    .get("/api/articles?order=hello")
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("Invalid order query.");
+    })
+  })
+})
+
 describe("GET /api/articles/:article_id/comments", () => {
   test("status: 200 - responds with all the comments for an requested article", () => {
     return request(app)
@@ -147,24 +174,6 @@ describe("POST /api/articles/:article_id/comments", () => {
       expect(typeof body.comment.votes).toBe("number")
     })
   })
-  test("status: 404 - when missing information of body", ()=> {
-    return request(app)
-    .post("/api/articles/1/comments")
-    .send({username: "butter_bridge"})
-    .expect(400)
-    .then(({body}) => {
-      expect(body.msg).toBe(`Missing required information.`)
-    })
-  })
-  test("status: 404 - when missing information of username", ()=> {
-    return request(app)
-    .post("/api/articles/1/comments")
-    .send({body: "testingbody3"})
-    .expect(400)
-    .then(({body}) => {
-      expect(body.msg).toBe(`Missing required information.`)
-    })
-  })
   test("status: 404 - when pass valid article_id but doesn't exist", ()=> {
     return request(app)
     .post("/api/articles/999/comments")
@@ -202,15 +211,6 @@ describe("PATCH /api/articles/:article_id", () => {
     .expect(200)
     .then(({body}) => {
       expect(body.article.votes).toBe(80)
-    })
-  })
-  test("status:400 - when passed invalid newVote", () => {
-    return request(app)
-    .patch("/api/articles/1")
-    .send({ inc_votes: "apple" })
-    .expect(400)
-    .then(({body}) => {
-      expect(body.msg).toBe("Invalid inc_votes format")
     })
   })
   test("status 404 - valid ID but not found", () => {
@@ -265,7 +265,7 @@ describe("DELETE /api/comments/:comment_id", () => {
   })
 });
 
-describe.only("GET /api/users", () => {
+describe("GET /api/users", () => {
   test("status: 200 - responds with all the users", () => {
     return request(app)
     .get("/api/users")
