@@ -45,9 +45,9 @@ const seed = ({ topicData, userData, articleData, commentData }) => {
     return db.query(`CREATE TABLE comments(
       comment_id SERIAL PRIMARY KEY NOT NULL,
       article_id INT,
-      body TEXT,
+      body TEXT NOT NULL,
       votes INT DEFAULT 0,
-      author VARCHAR(100),
+      author VARCHAR(100) NOT NULL,
       created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (article_id) REFERENCES articles(article_id),
       FOREIGN KEY (author) REFERENCES users(username)
