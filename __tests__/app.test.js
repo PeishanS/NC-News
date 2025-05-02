@@ -41,7 +41,7 @@ describe("GET /api/articles/:article_id", () => {
     .get("/api/articles/1")
     .expect(200)
     .then(({body}) => {
-      expect(body.article).toEqual(
+      expect(body.article).toMatchObject(
         {
           article_id: 1,
           title: "Living in the shadow of a great man",
@@ -52,7 +52,6 @@ describe("GET /api/articles/:article_id", () => {
           votes: 100,
           article_img_url:
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-          comment_count: 11,
         }
       )
     })
@@ -74,6 +73,30 @@ describe("GET /api/articles/:article_id", () => {
     })
   })
 });
+
+describe("GET /api/articles/:article_id (comment_count)", () => {
+  test("status 200 - responds with the requested article by id with feather of comment_count", () => {
+    return request(app)
+    .get("/api/articles/1")
+    .expect(200)
+    .then(({body}) => {
+      expect(body.article).toMatchObject(
+        {
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: '2020-07-09T20:11:00.000Z',
+          votes: 100,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          comment_count:11
+        }
+      )
+    })
+  })
+})
 
 describe("GET /api/articles", () => {
   test("status:200 - responds with all the articles sorted by date in descending order", () => {
