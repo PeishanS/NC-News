@@ -96,7 +96,7 @@ describe("GET /api/articles", () => {
   })
 });
 
-describe.only("GET /api/articles (sorting queries)", () => {
+describe("GET /api/articles (sorting queries)", () => {
   test("status:200-sorts by votes ascending", () => {
     return request(app)
     .get("/api/articles?sort_by=votes&order=asc")
@@ -105,7 +105,7 @@ describe.only("GET /api/articles (sorting queries)", () => {
       expect(body.articles).toBeSortedBy("votes", { asceding: true});
     })
   })
-  test("status:400-sorts by body descending", () => {
+  test("status:400-invalid sort_by", () => {
     return request(app)
     .get("/api/articles?sort_by=body&order=desc")
     .expect(400)
@@ -119,6 +119,37 @@ describe.only("GET /api/articles (sorting queries)", () => {
     .expect(400)
     .then(({body}) => {
       expect(body.msg).toBe("Invalid order query.");
+    })
+  })
+  test("status:200-when mispelling 'sort_by' the query will be ignored and default query will be used", () => {
+    return request(app)
+    .get("/api/articles?soort_by=votes&order=asc")
+    .expect(200)
+    .then(({body}) => {
+      expect(body.articles).toBeSortedBy("created_at", { asceding: true});
+    })
+  })
+});
+
+describe("GET /api/articles (topic query)", () => {
+  test("status:200 - responds with articles with the requested topic", () => {
+    return request(app)
+    .get("/api/articles?topic=mitch")
+    .expect(200)
+    .then(({body}) => {
+      expect(body.articles.length).toBeGreaterThan(0);
+      body.articles.forEach((article) => {
+        expect(article.topic).toBe("mitch")
+      })
+    })
+  })
+  test("status:200 - responds with all articles when topic was not passed in", () => {
+    return request(app)
+    .get("/api/articles?")
+    .expect(200)
+    .then(({body}) => {
+      expect(body.articles).toHaveLength(13);
+      expect(body.articles).toBeSorted("created_at")
     })
   })
 })
