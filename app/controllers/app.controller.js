@@ -1,5 +1,5 @@
 const endpointsJson = require("../../endpoints.json")
-const { selectTopics, selectArticleById, selectArticles, selectCommentsByArticleId, insertCommentByArticleId, updateArticleById, removeCommentById, selectUsers } = require("../models/app.model")
+const { selectTopics, selectArticleById, selectArticles, selectCommentsByArticleId, insertCommentByArticleId, updateArticleById, removeCommentById, selectUsers, checkIfTopicExists } = require("../models/app.model")
 
 exports.getApi = (req, res) => {
     res.status(200).json({endpoints: endpointsJson})
@@ -26,13 +26,26 @@ exports.getArticleById = (req, res, next) => {
 exports.getArticles = (req, res,next) => {
     const {sort_by, order, topic } = req.query;
 
-    return selectArticles(sort_by, order, topic)
-    .then((articles) => {
-        res.status(200).send({articles})
-    })
-    .catch((err) => {
-        next(err)
-    })
+    if(topic){
+        checkIfTopicExists(topic)
+        .then(() => {
+            return selectArticles(sort_by, order, topic)
+        })
+        .then((articles) => {
+            res.status(200).send({articles})
+        })
+        .catch((err) => {
+            next(err)
+        })
+    }else{
+        return selectArticles(sort_by, order)
+        .then((articles) => {
+            res.status(200).send({articles})
+        })
+        .catch((err) => {
+            next(err)
+        })
+    }
 }
 
 exports.getCommentsByArticleId = (req, res, next) => {
