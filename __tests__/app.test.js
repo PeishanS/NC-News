@@ -152,6 +152,22 @@ describe("GET /api/articles (topic query)", () => {
       expect(body.articles).toBeSorted("created_at")
     })
   })
+  test("status:200 - responds with am empty array when the passed topic with no associated articles", () => {
+    return request(app)
+    .get("/api/articles?topic=paper")
+    .expect(200)
+    .then(({body}) => {
+      expect(body.articles).toEqual([])
+    })
+  })
+  test("status:404 - when passed a topic that is not found", () => {
+    return request(app)
+    .get("/api/articles?topic=appleorange")
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toBe(`Topic not found.`)
+    })
+  })
 })
 
 describe("GET /api/articles/:article_id/comments", () => {
