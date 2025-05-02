@@ -22,7 +22,7 @@ exports.selectArticleById = (article_id) => {
     })
 }
 
-exports.selectArticles = (sort_by = "created_at", order = "desc") => {
+exports.selectArticles = (sort_by = "created_at", order = "desc", topic ) => {
     const allowedSortBys = ["article_id", "title","topic", "author", "created_at", "votes", "article_img_url","comment_count"];
 
     const allowedOrders = ["asc", "desc"];
@@ -41,7 +41,9 @@ exports.selectArticles = (sort_by = "created_at", order = "desc") => {
         })
     }
 
-    const queryStr = `SELECT
+    const queryValues = [];
+
+    let queryStr = `SELECT
         articles.author,
         articles.title,
         articles.article_id,
@@ -52,11 +54,18 @@ exports.selectArticles = (sort_by = "created_at", order = "desc") => {
         COUNT(comments.comment_id)::INT AS comment_count
         FROM articles
         LEFT OUTER JOIN comments ON comments.article_id = articles.article_id
-        GROUP BY articles.article_id
-        ORDER BY ${sort_by} ${order.toUpperCase()};`
+        `;
+    
+    if(topic){
+        queryValues.push(topic);
+        queryStr += "WHERE articles.topic = $1 ";
+    }
+
+    queryStr += `GROUP BY articles.article_id
+    ORDER BY ${sort_by} ${order.toUpperCase()};`
 
     return db
-    .query(queryStr)
+    .query(queryStr,queryValues)
     .then(({rows}) => {
         return rows;
     })
