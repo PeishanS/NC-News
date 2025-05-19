@@ -1,9 +1,12 @@
 const db = require("./db/connection");
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const endpointsJson = require("./endpoints.json");
 
-const{ getApi, getTopics, getArticleById, getArticles, getCommentsByArticleId, postCommentByArticleId, patchArticleById, deleteCommentById, getUsers } = require("./app/controllers/app.controller")
+const { getApi, getTopics, getArticleById, getArticles, getCommentsByArticleId, postCommentByArticleId, patchArticleById, deleteCommentById, getUsers } = require("./app/controllers/app.controller")
+
+app.use(cors());
 
 app.use(express.json());
 
