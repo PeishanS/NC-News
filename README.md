@@ -47,8 +47,10 @@ Make sure your `.gitignore` includes the line `.env.*` to prevent these files fr
 For production deployment, create a `.env.production` file with the following content:
 
 ```env
-DATABASE_URL=postgresql://postgres.byexljidoexahnfffwxa:p1iLD3Mp8e4kRtEM@aws-0-eu-west-2.pooler.supabase.com:6543/postgres
+DATABASE_URL=postgresql://username:password@your-host:port/database
+NODE_ENV=production
 ```
+Replace `username`, `password`, `your-host`, and `database` with your actual credentials.
 
 ### Database Seeding
 
